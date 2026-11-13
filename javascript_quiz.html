@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .quiz-card {
+            transition: all 0.3s ease;
+        }
+        .quiz-card:hover {
+            transform: translateY(-2px);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header Section -->
+    <header class="w-full py-6 px-4 md:px-8 border-b border-slate-800/60 backdrop-blur-md bg-slate-900/40 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/30 text-white font-bold text-xl flex items-center justify-center w-10 h-10">
+                    <i class="fa-brands fa-js"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">JS Master Test</h1>
+                    <p class="text-xs text-slate-400">20 вопросов по экосистеме и истории JavaScript</p>
+                </div>
+            </div>
+            <div id="progress-indicator" class="hidden md:flex items-center space-x-2 text-xs font-medium text-indigo-300 bg-indigo-950/60 px-3 py-1.5 rounded-full border border-indigo-800/40">
+                <i class="fa-solid fa-list-check"></i>
+                <span id="progress-text">Отвечено: 0 / 20</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content / Quiz Container -->
+    <main class="w-full max-w-4xl mx-auto px-4 md:px-8 py-8 flex-grow">
+        
+        <!-- Intro Screen -->
+        <div id="intro-screen" class="bg-slate-900/70 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl backdrop-blur-md text-center max-w-2xl mx-auto animate-fade-in">
+            <div class="inline-flex p-4 bg-indigo-600/20 text-indigo-400 rounded-2xl mb-6 border border-indigo-500/30 text-3xl">
+                <i class="fa-solid fa-code"></i>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-bold mb-4">Проверьте свои знания о JavaScript</h2>
+            <p class="text-slate-300 mb-8 leading-relaxed text-sm md:text-base">
+                Тест состоит из 20 актуальных вопросов об истории языка, стандарте ECMAScript, типах данных, синтаксисе, областях видимости и ключевых концепциях JavaScript. Выберите один правильный вариант для каждого вопроса.
+            </p>
+            <button onclick="startQuiz()" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0">
+                <i class="fa-solid fa-play mr-2"></i> Начать тест
+            </button>
+        </div>
+
+        <!-- Quiz Form / Questions Screen -->
+        <div id="quiz-screen" class="hidden space-y-6 animate-fade-in">
+            
+            <!-- Mobile Progress Bar -->
+            <div class="md:hidden bg-slate-900/80 border border-slate-800 p-4 rounded-xl flex items-center justify-between sticky top-20 z-40 backdrop-blur-md">
+                <span class="text-xs font-semibold text-slate-300">Прогресс:</span>
+                <span id="mobile-progress-text" class="text-xs font-bold text-indigo-400">0 / 20</span>
+            </div>
+
+            <div id="questions-container" class="space-y-6">
+                <!-- Dynamically injected questions will go here -->
+            </div>
+
+            <!-- Submit Action -->
+            <div class="pt-6 flex justify-center pb-12">
+                <button onclick="submitQuiz()" class="px-10 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-xl shadow-emerald-600/20 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center space-x-2">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Завершить тест и проверить</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden bg-slate-900/80 border border-slate-800 rounded-2xl p-8 md:p-12 shadow-2xl backdrop-blur-md text-center max-w-2xl mx-auto animate-fade-in">
+            <div id="result-icon-container" class="inline-flex p-5 rounded-3xl mb-6 text-4xl shadow-xl">
+                <!-- Injected via JS -->
+            </div>
+            <h2 id="result-title" class="text-2xl md:text-3xl font-bold mb-2">Результаты теста</h2>
+            <p id="result-subtitle" class="text-slate-300 mb-6 text-sm md:text-base"></p>
+            
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6 mb-8 grid grid-cols-2 gap-4 text-center">
+                <div class="p-3 border-r border-slate-800/80">
+                    <span class="block text-xs text-slate-400 uppercase tracking-wider mb-1">Правильных ответов</span>
+                    <span id="score-fraction" class="text-2xl md:text-3xl font-black text-indigo-400">0/20</span>
+                </div>
+                <div class="p-3">
+                    <span class="block text-xs text-slate-400 uppercase tracking-wider mb-1">Процент успеха</span>
+                    <span id="score-percentage" class="text-2xl md:text-3xl font-black text-emerald-400">0%</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="restartQuiz()" class="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-200 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Пройти заново</span>
+                </button>
+                <button onclick="reviewAnswers()" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition-all duration-200 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>Посмотреть разбор</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom Notification Modal (instead of alert) -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-fade-in text-center">
+            <div class="text-amber-400 text-3xl mb-3">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold mb-2">Внимание</h3>
+            <p id="modal-message" class="text-slate-300 text-sm mb-6"></p>
+            <button onclick="closeModal()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition">Понятно</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full py-6 text-center text-xs text-slate-500 border-t border-slate-800/40">
+        <p>JavaScript Knowledge Assessment • Основано на материалах Википедии</p>
+    </footer>
+
+    <!-- Script Application Logic -->
+    <script>
+        // Array of 20 detailed questions based on JavaScript background & features
+        const questions = [
+            {
+                id: 1,
+                question: "Кто создал язык программирования JavaScript?",
+                options: [
+                    "Брендан Айк (Brendan Eich)",
+                    "Гвидо ван Россум",
+                    "Джеймс Гослинг",
+                    "Бьёрн Страуструп"
+                ],
+                correct: 0,
+                explanation: "JavaScript был создан Бренданом Айком в компании Netscape Communications в 1995 году всего за 10 дней."
+            },
+            {
+                id: 2,
+                question: "В каком году был выпущен JavaScript под первоначальным названием LiveScript?",
+                options: [
+                    "1991",
+                    "1995",
+                    "1998",
+                    "2001"
+                ],
+                correct: 1,
+                explanation: "Язык был первоначально разработан под именем Mocha, затем переименован в LiveScript, и окончательно назван JavaScript в декабре 1995 года."
+            },
+            {
+                id: 3,
+                question: "Какой стандартизированный документ описывает спецификацию JavaScript?",
+                options: [
+                    "RFC 2616",
+                    "ECMA-262",
+                    "ISO/IEC 9899",
+                    "W3C DOM Spec"
+                ],
+                correct: 1,
+                explanation: "Стандартизацией JavaScript занимается организация Ecma International под спецификацией ECMA-262."
+            },
+            {
+                id: 4,
+                question: "Какой из следующих типов данных НЕ является примитивным в JavaScript?",
+                options: [
+                    "Symbol",
+                    "BigInt",
+                    "Object",
+                    "Boolean"
+                ],
+                correct: 2,
+                explanation: "Object (объект) — это ссылочный тип данных. Примитивными в JS являются: string, number, bigint, boolean, undefined, symbol и null."
+            },
+            {
+                id: 5,
+                question: "Какой оператор используется для строгого сравнения (с проверкой типа и значения)?",
+                options: [
+                    "==",
+                    "===",
+                    "=",
+                    "equals()"
+                ],
+                correct: 1,
+                explanation: "Оператор `===` проверяет строгое равенство без приведения типов, в отличие от нестрогого `==`."
+            },
+            {
+                id: 6,
+                question: "Что такое ' замыкание' (closure) в JavaScript?",
+                options: [
+                    "Функция, которая автоматически удаляется из памяти",
+                    "Способ компиляции кода в байт-код",
+                    "Функция вместе со всеми внешними переменными, которые ей доступны",
+                    "Специальный метод для закрытия соединения с сервером"
+                ],
+                correct: 2,
+                explanation: "Замыкание — это комбинация функции и лексического окружения, в котором эта функция была объявлена, что позволяет сохранять доступ к внешним переменным."
+            },
+            {
+                id: 7,
+                question: "Какой метод массива возвращает новый массив, состоящий из элементов, прошедших проверку в функции-предикате?",
+                options: [
+                    "map()",
+                    "filter()",
+                    "reduce()",
+                    "forEach()"
+                ],
+                correct: 1,
+                explanation: "Метод `filter()` создает новый массив со всеми элементами, прошедшими проверку, заданную в передаваемой функции."
+            },
+            {
+                id: 8,
+                question: "Что выведет в консоль выражение: `typeof null`?",
+                options: [
+                    "\"null\"",
+                    "\"undefined\"",
+                    "\"object\"",
+                    "\"number\""
+                ],
+                correct: 2,
+                explanation: "Это известная историческая ошибка в JavaScript: `typeof null` возвращает \"object\", хотя null — это примитивное значение."
+            },
+            {
+                id: 9,
+                question: "Какое ключевое слово было добавлено в ES6 (ES2015) для объявления блочных переменных?",
+                options: [
+                    "var",
+                    "let",
+                    "global",
+                    "constant"
+                ],
+                correct: 1,
+                explanation: "Ключевые слова `let` и `const` были добавлены в ES6 для объявления переменных с блочной областью видимости."
+            },
+            {
+                id: 10,
+                question: "Что такое асинхронный механизм `async/await`?",
+                options: [
+                    "Синтаксический сахар над промисами (Promises)",
+                    "Новый поток выполнения процессора",
+                    "Библиотека для работы с многопоточностью",
+                    "Метод параллельного рендеринга DOM"
+                ],
+                correct: 0,
+                explanation: "`async/await` построен на базе Promises и позволяет писать асинхронный код в синхронном стиле, облегчая чтение и отладку."
+            },
+            {
+                id: 11,
+                question: "Какая концепция описывает модель выполнения JavaScript в одном потоке?",
+                options: [
+                    "Event Loop (Цикл событий)",
+                    "Thread Pool Manager",
+                    "Mutex Lock Synchronizer",
+                    "Garbage Collector Pipeline"
+                ],
+                correct: 0,
+                explanation: "Event Loop (цикл событий) управляет выполнением кода, сбором и обработкой событий и выполнением подзадач в однопоточной среде JS."
+            },
+            {
+                id: 12,
+                question: "Какое из значений в JavaScript считается ложным (falsy) при логическом приведении?",
+                options: [
+                    "\"0\" (непустая строка)",
+                    "[] (пустой массив)",
+                    "0 (число ноль)",
+                    "{} (пустой объект)"
+                ],
+                correct: 2,
+                explanation: "Число 0, пустая строка \"\", null, undefined, NaN и false являются falsy значениями. Пустые массивы и объекты в JS приводятся к true."
+            },
+            {
+                id: 13,
+                question: "Что такое всплытие (hoisting) в JavaScript?",
+                options: [
+                    "Подъем объявлений переменных и функций в верхнюю часть текущей области видимости",
+                    "Автоматическое удаление неиспользуемых объектов",
+                    "Оптимизация скорости рендеринга страницы",
+                    "Динамическое подключение внешних скриптов"
+                ],
+                correct: 0,
+                explanation: "Hoisting — это механизм JS, при котором объявления переменных (через var) и функций поднимаются в верх области видимости перед выполнением."
+            },
+            {
+                id: 14,
+                question: "Какая функция используется для преобразования строки JSON в объект JavaScript?",
+                options: [
+                    "JSON.stringify()",
+                    "JSON.parse()",
+                    "JSON.objectify()",
+                    "JSON.convert()"
+                ],
+                correct: 1,
+                explanation: "Метод `JSON.parse()` разбирает строку JSON и превращает её в значение или объект JavaScript."
+            },
+            {
+                id: 15,
+                question: "Какой метод используется для добавления элемента в конец массива?",
+                options: [
+                    "shift()",
+                    "unshift()",
+                    "push()",
+                    "pop()"
+                ],
+                correct: 2,
+                explanation: "Метод `push()` добавляет один или более элементов в конец массива и возвращает новую длину массива."
+            },
+            {
+                id: 16,
+                question: "Что такое объект `this` в методе объекта?",
+                options: [
+                    "Ссылка на глобальный объект window",
+                    "Ссылка на сам объект, перед точкой которого вызван метод",
+                    "Ссылка на функцию-родитель",
+                    "Строковое имя текущего файла"
+                ],
+                correct: 1,
+                explanation: "В контексте метода объекта `this` указывает на объект, который владеет этим методом (на момент вызова)."
+            },
+            {
+                id: 17,
+                question: "Какое расширение файлов традиционно используется для модулей JavaScript стандарта ES6?",
+                options: [
+                    ".js",
+                    ".ts",
+                    ".mjs",
+                    ".jsc"
+                ],
+                correct: 2,
+                explanation: "Расширение `.mjs` часто используется для файлов модулей ECMAScript, хотя стандартным остается `.js` с соответствующим типом в package.json."
+            },
+            {
+                id: 18,
+                question: "Какая технология позволила выполнять JavaScript за пределами браузера?",
+                options: [
+                    "V8 Engine и Node.js",
+                    "Apache Web Server",
+                    "Docker Container",
+                    "Java Virtual Machine (JVM)"
+                ],
+                correct: 0,
+                explanation: "Node.js, построенный на базе движка V8 от Google, перенес среду выполнения JavaScript на серверную сторону."
+            },
+            {
+                id: 19,
+                question: "Что делает оператор расширения `...` (spread syntax)?",
+                options: [
+                    "Упаковывает аргументы в массив",
+                    "Разворачивает итерируемые объекты в элементы или аргументы",
+                    "Удаляет дубликаты из массива",
+                    "Сравнивает два объекта по ссылке"
+                ],
+                correct: 1,
+                explanation: "Оператор spread (`...`) позволяет распаковывать массивы или объекты в точках ожидания элементов или свойств."
+            },
+            {
+                id: 20,
+                question: "Какая встроенная структура данных была добавлена в ES6 для хранения уникальных значений?",
+                options: [
+                    "Map",
+                    "Set",
+                    "WeakDictionary",
+                    "HashList"
+                ],
+                correct: 1,
+                explanation: "Объект `Set` позволяет хранить только уникальные значения любого типа, в то время как `Map` хранит пары ключ-значение."
+            }
+        ];
+
+        let userAnswers = {};
+        let isSubmitted = false;
+
+        function startQuiz() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            renderQuestions();
+            updateProgress();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'quiz-card bg-slate-900/70 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl backdrop-blur-md';
+                card.id = `question-card-${index}`;
+
+                let optionsHtml = '';
+                q.options.forEach((opt, optIndex) => {
+                    const isSelected = userAnswers[index] === optIndex;
+                    optionsHtml += `
+                        <label class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-800/80 bg-slate-950/40 hover:bg-slate-800/50 cursor-pointer transition-all option-label-${index}-${optIndex}" onclick="selectOption(${index}, ${optIndex})">
+                            <input type="radio" name="question-${index}" value="${optIndex}" ${isSelected ? 'checked' : ''} class="mt-0.5 text-indigo-600 focus:ring-indigo-500 h-4 w-4 bg-slate-900 border-slate-700">
+                            <span class="text-slate-200 text-sm md:text-base select-none">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/60 px-3 py-1 rounded-full border border-indigo-800/40">Вопрос ${index + 1} из 20</span>
+                        <span id="status-badge-${index}" class="text-xs font-medium"></span>
+                    </div>
+                    <h3 class="text-base md:text-lg font-semibold text-white mb-5 leading-snug">${q.question}</h3>
+                    <div class="space-y-3" id="options-group-${index}">
+                        ${optionsHtml}
+                    </div>
+                    <div id="explanation-${index}" class="hidden mt-4 p-4 rounded-xl text-xs md:text-sm border"></div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectOption(qIndex, optIndex) {
+            if (isSubmitted) return;
+            userAnswers[qIndex] = optIndex;
+            updateProgress();
+            
+            // Highlight selected option visually
+            const optionsGroup = document.getElementById(`options-group-${qIndex}`);
+            const labels = optionsGroup.querySelectorAll('label');
+            labels.forEach((lbl, idx) => {
+                if (idx === optIndex) {
+                    lbl.classList.add('border-indigo-500/80', 'bg-indigo-950/40');
+                    lbl.classList.remove('border-slate-800/80', 'bg-slate-950/40');
+                } else {
+                    lbl.classList.remove('border-indigo-500/80', 'bg-indigo-950/40');
+                    lbl.classList.add('border-slate-800/80', 'bg-slate-950/40');
+                }
+            });
+        }
+
+        function updateProgress() {
+            const answeredCount = Object.keys(userAnswers).length;
+            document.getElementById('progress-text').innerText = `Отвечено: ${answeredCount} / 20`;
+            document.getElementById('mobile-progress-text').innerText = `${answeredCount} / 20`;
+        }
+
+        function showModal(msg) {
+            document.getElementById('modal-message').innerText = msg;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        function submitQuiz() {
+            const answeredCount = Object.keys(userAnswers).length;
+            if (answeredCount < 20) {
+                showModal(`Вы ответили не на все вопросы (${answeredCount} из 20). Пожалуйста, ответьте на оставшиеся вопросы перед завершением теста.`);
+                return;
+            }
+
+            isSubmitted = true;
+            let score = 0;
+
+            questions.forEach((q, index) => {
+                const userChoice = userAnswers[index];
+                const card = document.getElementById(`question-card-${index}`);
+                const statusBadge = document.getElementById(`status-badge-${index}`);
+                const explanationDiv = document.getElementById(`explanation-${index}`);
+                const optionsGroup = document.getElementById(`options-group-${index}`);
+                const labels = optionsGroup.querySelectorAll('label');
+
+                // Disable inputs
+                labels.forEach(lbl => {
+                    const inp = lbl.querySelector('input');
+                    if (inp) inp.disabled = true;
+                    lbl.classList.remove('cursor-pointer', 'hover:bg-slate-800/50');
+                    lbl.classList.add('cursor-default');
+                });
+
+                if (userChoice === q.correct) {
+                    score++;
+                    statusBadge.innerHTML = `<span class="text-emerald-400 flex items-center gap-1 font-semibold"><i class="fa-solid fa-check"> Верно</i></span>`;
+                    card.classList.add('border-emerald-500/30');
+                    if (labels[userChoice]) {
+                        labels[userChoice].classList.add('border-emerald-500/80', 'bg-emerald-950/30');
+                        labels[userChoice].classList.remove('border-slate-800/80');
+                    }
+                } else {
+                    statusBadge.innerHTML = `<span class="text-rose-400 flex items-center gap-1 font-semibold"><i class="fa-solid fa-xmark"> Неверно</i></span>`;
+                    card.classList.add('border-rose-500/30');
+                    if (userChoice !== undefined && labels[userChoice]) {
+                        labels[userChoice].classList.add('border-rose-500/80', 'bg-rose-950/30');
+                        labels[userChoice].classList.remove('border-slate-800/80');
+                    }
+                    if (labels[q.correct]) {
+                        labels[q.correct].classList.add('border-emerald-500/80', 'bg-emerald-950/30');
+                        labels[q.correct].classList.remove('border-slate-800/80');
+                    }
+                }
+
+                // Show explanation
+                explanationDiv.classList.remove('hidden');
+                explanationDiv.className = `mt-4 p-4 rounded-xl text-xs md:text-sm border ${userChoice === q.correct ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200' : 'bg-indigo-950/20 border-indigo-500/30 text-indigo-200'}`;
+                explanationDiv.innerHTML = `<strong>Разбор:</strong> ${q.explanation}`;
+            });
+
+            // Switch view to results screen
+            document.getElementById('quiz-screen').classList.add('hidden');
+            const resultsScreen = document.getElementById('results-screen');
+            resultsScreen.classList.remove('hidden');
+
+            // Populate results details
+            const percentage = Math.round((score / 20) * 100);
+            document.getElementById('score-fraction').innerText = `${score}/20`;
+            document.getElementById('score-percentage').innerText = `${percentage}%`;
+
+            const iconContainer = document.getElementById('result-icon-container');
+            const resultTitle = document.getElementById('result-title');
+            const resultSubtitle = document.getElementById('result-subtitle');
+
+            if (percentage >= 85) {
+                iconContainer.className = 'inline-flex p-5 rounded-3xl mb-6 text-4xl shadow-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                iconContainer.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+                resultTitle.innerText = 'Великолепный результат!';
+                resultSubtitle.innerText = 'Вы отлично разбираетесь в синтаксисе, истории и ключевых концепциях JavaScript.';
+            } else if (percentage >= 50) {
+                iconContainer.className = 'inline-flex p-5 rounded-3xl mb-6 text-4xl shadow-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30';
+                iconContainer.innerHTML = '<i class="fa-solid fa-award"></i>';
+                resultTitle.innerText = 'Хороший результат!';
+                resultSubtitle.innerText = 'Вы обладаете уверенной базой знаний, но есть темы, которые можно повторить.';
+            } else {
+                iconContainer.className = 'inline-flex p-5 rounded-3xl mb-6 text-4xl shadow-xl bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                iconContainer.innerHTML = '<i class="fa-solid fa-book-open"></i>';
+                resultTitle.innerText = 'Есть повод для роста!';
+                resultSubtitle.innerText = 'Рекомендуем освежить в памяти спецификацию JavaScript и повторить продвинутые разделы.';
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function restartQuiz() {
+            userAnswers = {};
+            isSubmitted = false;
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('intro-screen').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function reviewAnswers() {
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
